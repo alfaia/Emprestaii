@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,8 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Organizar os apps externos
-    'rest-framework',
+    'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
     # Organizar os apps do projeto
     'core',
@@ -85,10 +87,20 @@ WSGI_APPLICATION = 'emprestaii.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        'ENGINE': "django.db.backends.postgresql",
+        'NAME': os.environ.get("POSTGRES_DB", "teste"),
+        'USER': os.environ.get("POSTGRES_USER"),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD"),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -133,3 +145,40 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Define o modelo de usuário customizado que será usado no lugar do padrão do Django
+AUTH_USER_MODEL = 'users.CustomUser'
+
+REST_FRAMEWORK = {
+    # Define o método padrão de autenticação para toda a API
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    # Define a permissão padrão: todas as rotas requerem autenticação (exceto se sobrescrito em cada view)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    # Define o tempo de vida do **Access Token** (curto prazo)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+
+    # Define o tempo de vida do **Refresh Token** (sessão de login)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+
+    # Ao usar um refresh token para obter novo access token, gera um novo refresh token também
+    'ROTATE_REFRESH_TOKENS': True,
+
+    # Garante que o refresh token antigo seja automaticamente invalidado (blacklisted)
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    # Define o prefixo no header Authorization (Bearer <token>)
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+
