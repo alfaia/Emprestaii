@@ -6,6 +6,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Rotas dos app
     path('api/users/', include('users.urls')),
+    path('api/', include('items.urls')),
 
     # Rotas para autenticação
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
